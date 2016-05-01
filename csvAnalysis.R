@@ -13,6 +13,7 @@ library(stringr)
 filesTmp <- list.files(path = ".", pattern = ".csv")
 filesTmp <- filesTmp[!str_detect(filesTmp, "xxxx|XXXX|res|meta|sample|test|train")]
 
+filesTmp <- tail(filesTmp,3)
 
 dfcsv <- data.frame()
 scordf <- data.frame(score = 0)
@@ -37,6 +38,47 @@ scorgd <- as.numeric(scordf)
 #Scores
 scorgd <- ifelse(scorgd > 1, scorgd/10000, scorgd)
 
+#------------------------------------------------------
+# (2)  Model higher than 0.84228 and GEOMETRIC MEAN
+# Improved!!.
+# 2016_04_28 - 10 values -> 0.842414
+# Watch out!!: Take 10 different values and improved the best...
+#[1] 0.842316 0.842316 0.842316 0.842328 0.842328 0.842365 0.842365 0.842365 [9] 0.842365 0.842365
+# 2016_04_28 - 15 values -> 0.842414 (does not improve... it includes previous value)
+val_ref <- 0.8422
+to_ensem <- scorgd > val_ref
+df_ensem <- dfcsv[, 2:ncol(dfcsv)]
+df_ensem <- df_ensem[, to_ensem]
+
+library(psych)
+mod_geme <- apply(df_ensem, 1, geometric.mean)
+
+timval <- str_replace_all(Sys.time(), " |:", "_")
+toSubmit <- data.frame(ID = dfcsv[,1], TARGET = mod_geme)
+
+file_out <- paste("Res_xxxx_geom_mean_",val_ref,"_", timval,".csv",sep = "")
+write.table(toSubmit, file = file_out, sep = "," ,
+            row.names = FALSE,col.names = TRUE, quote = FALSE)
+
+#------------------------------------------------------
+# (2)  Model higher than 0.84228 and SIMPLE MEAN
+# Improved!!.
+val_ref <- 0.84228
+to_ensem <- scorgd > val_ref
+df_ensem <- dfcsv[, 2:ncol(dfcsv)]
+df_ensem <- df_ensem[, to_ensem]
+
+library(psych)
+mod_geme <- apply(df_ensem, 1, mean)
+
+timval <- str_replace_all(Sys.time(), " |:", "_")
+toSubmit <- data.frame(ID = dfcsv[,1], TARGET = mod_geme)
+
+file_out <- paste("Res_xxxx_simple_mean_",val_ref,"_", timval,".csv",sep = "")
+write.table(toSubmit, file = file_out, sep = "," ,
+            row.names = FALSE,col.names = TRUE, quote = FALSE)
+
+
 #------------------ MODELS ----------------------------
 #------------------------------------------------------
 # (1) Model based on weigthed mean based on scored...
@@ -55,9 +97,10 @@ write.table(toSubmit, file = file_out, sep = "," ,
             row.names = FALSE,col.names = TRUE, quote = FALSE)
 
 #------------------------------------------------------
-# (2)  Model higher than 0.8404 and GEOMETRIC MEAN
+# (2)  Model higher than 0.84228 and GEOMETRIC MEAN
 # Improved!!.
-to_ensem <- scorgd > 0.8404
+val_ref <- 0.84228
+to_ensem <- scorgd > val_ref
 df_ensem <- dfcsv[, 2:ncol(dfcsv)]
 df_ensem <- df_ensem[, to_ensem]
 
@@ -67,7 +110,7 @@ mod_geme <- apply(df_ensem, 1, geometric.mean)
 timval <- str_replace_all(Sys.time(), " |:", "_")
 toSubmit <- data.frame(ID = dfcsv[,1], TARGET = mod_geme)
 
-file_out <- paste("Res_xxxx_geom_mean_0.8404_", timval,".csv",sep = "")
+file_out <- paste("Res_xxxx_geom_mean_",val_ref,"_", timval,".csv",sep = "")
 write.table(toSubmit, file = file_out, sep = "," ,
             row.names = FALSE,col.names = TRUE, quote = FALSE)
 

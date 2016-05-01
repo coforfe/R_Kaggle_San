@@ -1,3 +1,10 @@
+
+#------------------------------------------------------------
+# SANTANDER - Customer Satisfaction - New: 2016_04_20
+#------------------------------------------------------------
+
+setwd("/Volumes/TOSHIBA EXT/Verbatin64/R-cosas/2016-01 - Kaggle/03_Santander")
+
 library(xgboost)
 library(Matrix)
 
@@ -15,9 +22,11 @@ test$ID <- NULL
 train.y <- train$TARGET
 train$TARGET <- NULL
 
-AGE = test['var15']
-SMV5H2 = test['saldo_medio_var5_hace2']
-SV33 = test['saldo_var33']
+var15 = test['var15']
+saldo_medio_var5_hace2 = test['saldo_medio_var5_hace2']
+saldo_var33 = test['saldo_var33']
+var38 = test['var38']
+V21 = test['var21']
 
 
 ##### 0 count per line
@@ -85,7 +94,9 @@ param <- list(  objective           = "binary:logistic",
                 eta                 = 0.0202048,
                 max_depth           = 5,
                 subsample           = 0.6815,
-                colsample_bytree    = 0.701
+                colsample_bytree    = 0.701,
+                set.seed            = 59529
+                
 )
 
 clf <- xgb.train(   params              = param, 
@@ -104,9 +115,12 @@ test <- sparse.model.matrix(TARGET ~ ., data = test)
 preds <- predict(clf, test)
 
 # Under 23 year olds are always happy
-preds[AGE<23] = 0
-preds[SMV5H2>160000]=0
-preds[SV33>0]=0
+preds[var15 < 23] = 0
+preds[saldo_medio_var5_hace2 > 160000]=0
+preds[saldo_var33 > 0]=0
+preds[var38 > 3988596]=0
+preds[V21>7500]=0
+
 submission <- data.frame(ID=test.id, TARGET=preds)
 cat("saving the submission file\n")
-write.csv(submission, "submission.csv", row.names = F)
+write.csv(submission, "Res_xxxx_xgb_submission.csv", row.names = F)

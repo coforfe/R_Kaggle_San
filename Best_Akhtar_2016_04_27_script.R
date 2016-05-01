@@ -3,8 +3,8 @@ library(Matrix)
 
 set.seed(1234)
 
-train <- read.csv("train.csv")
-test  <- read.csv("test.csv")
+train <- read.csv("../input/train.csv")
+test  <- read.csv("../input/test.csv")
 
 ##### Removing IDs
 train$ID <- NULL
@@ -15,9 +15,22 @@ test$ID <- NULL
 train.y <- train$TARGET
 train$TARGET <- NULL
 
-AGE = test['var15']
-SMV5H2 = test['saldo_medio_var5_hace2']
-SV33 = test['saldo_var33']
+var15 = test['var15']
+saldo_medio_var5_hace2 = test['saldo_medio_var5_hace2']
+saldo_var33 = test['saldo_var33']
+var38 = test['var38']
+v21 = test['var21']
+nv = test['num_var33']+test['saldo_medio_var33_ult3']+test['saldo_medio_var44_hace2']+test['saldo_medio_var44_hace3']+
+test['saldo_medio_var33_ult1']+test['saldo_medio_var44_ult1']
+num_var30 = test['num_var30']
+num_var13_0 = test['num_var13_0']
+num_var33_0 = test['num_var33_0']
+
+
+# BAD
+# num_var35 = test['num_var35']
+# No improvement
+# num_var1 = test['num_var1']
 
 
 ##### 0 count per line
@@ -82,7 +95,7 @@ watchlist <- list(train=dtrain)
 param <- list(  objective           = "binary:logistic", 
                 booster             = "gbtree",
                 eval_metric         = "auc",
-                eta                 = 0.0202048,
+                eta                 = 0.0202047,
                 max_depth           = 5,
                 subsample           = 0.6815,
                 colsample_bytree    = 0.701
@@ -97,16 +110,38 @@ clf <- xgb.train(   params              = param,
 )
 
 
+#######actual variables
+
+feature.names
+
 test$TARGET <- -1
 
 test <- sparse.model.matrix(TARGET ~ ., data = test)
 
 preds <- predict(clf, test)
+pred <-predict(clf,train)
+AUC<-function(actual,predicted)
+{
+  library(pROC)
+  auc<-auc(as.numeric(actual),as.numeric(predicted))
+  auc 
+}
+AUC(train.y,pred) ##AUC
 
-# Under 23 year olds are always happy
-preds[AGE<23] = 0
-preds[SMV5H2>160000]=0
-preds[SV33>0]=0
+preds[var15 < 23] = 0
+preds[saldo_medio_var5_hace2 > 160000] = 0
+preds[saldo_var33 > 0] = 0
+preds[var38 > 3988596] = 0
+preds[nv > 0] = 0
+preds[v21 > 7500] = 0
+preds[num_var30 > 9] = 0
+preds[num_var13_0 > 6] = 0
+preds[num_var33_0 > 0] = 0
+
+# BAD
+# preds[num_var35 > 21] = 0
+# preds[num_var1 > 3] = 0
+
 submission <- data.frame(ID=test.id, TARGET=preds)
 cat("saving the submission file\n")
 write.csv(submission, "submission.csv", row.names = F)

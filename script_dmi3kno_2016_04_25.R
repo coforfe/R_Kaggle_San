@@ -3,8 +3,8 @@ library(Matrix)
 
 set.seed(1234)
 
-train <- read.csv("train.csv")
-test  <- read.csv("test.csv")
+train <- read.csv("../input/train.csv")
+test  <- read.csv("../input/test.csv")
 
 ##### Removing IDs
 train$ID <- NULL
@@ -18,6 +18,7 @@ train$TARGET <- NULL
 AGE = test['var15']
 SMV5H2 = test['saldo_medio_var5_hace2']
 SV33 = test['saldo_var33']
+SMV31H2 = test['saldo_medio_var17_hace2']+test['saldo_medio_var33_hace2']+test['saldo_medio_var44_hace2']
 
 
 ##### 0 count per line
@@ -107,6 +108,7 @@ preds <- predict(clf, test)
 preds[AGE<23] = 0
 preds[SMV5H2>160000]=0
 preds[SV33>0]=0
+preds[SMV31H2>0]=0
 submission <- data.frame(ID=test.id, TARGET=preds)
 cat("saving the submission file\n")
 write.csv(submission, "submission.csv", row.names = F)
