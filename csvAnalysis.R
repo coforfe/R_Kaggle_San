@@ -13,12 +13,13 @@ library(stringr)
 filesTmp <- list.files(path = ".", pattern = ".csv")
 filesTmp <- filesTmp[!str_detect(filesTmp, "xxxx|XXXX|res|meta|sample|test|train")]
 
-filesTmp <- tail(filesTmp,3)
+filesTmp <- head(filesTmp,15)
 
 dfcsv <- data.frame()
 scordf <- data.frame(score = 0)
 
 for (i in 1:length(filesTmp)) {
+  print(i)
   scortmp <- word(filesTmp[i], 2, sep = fixed("_")) 
   scordf[i,1] <- scortmp
   
@@ -45,7 +46,7 @@ scorgd <- ifelse(scorgd > 1, scorgd/10000, scorgd)
 # Watch out!!: Take 10 different values and improved the best...
 #[1] 0.842316 0.842316 0.842316 0.842328 0.842328 0.842365 0.842365 0.842365 [9] 0.842365 0.842365
 # 2016_04_28 - 15 values -> 0.842414 (does not improve... it includes previous value)
-val_ref <- 0.8422
+val_ref <- 0.842400
 to_ensem <- scorgd > val_ref
 df_ensem <- dfcsv[, 2:ncol(dfcsv)]
 df_ensem <- df_ensem[, to_ensem]
@@ -157,6 +158,15 @@ toSubmit <- data.frame(ID = dfcsv[,1], TARGET = mod_geme)
 file_out <- paste("Res_xxxx_weigh_geom_mean_0.8405_ncols_",ncol(df_ensem) ,"_", timval,".csv",sep = "")
 write.table(toSubmit, file = file_out, sep = "," ,
             row.names = FALSE,col.names = TRUE, quote = FALSE)
+
+
+#--------------------------------------
+# Correlations among submissions...
+to_cor <- dfcsv[, 2:ncol(dfcsv)]
+library(corrplot)
+M <- cor(to_cor)
+corrplot(M, method = "number", col = "black", cl.pos = "n")
+corrplot(M)
 
 
 
